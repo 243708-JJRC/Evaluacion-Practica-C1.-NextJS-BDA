@@ -1,0 +1,57 @@
+DROP TABLE IF EXISTS attendance CASCADE;
+DROP TABLE IF EXISTS grades CASCADE;
+DROP TABLE IF EXISTS enrollments CASCADE;
+DROP TABLE IF EXISTS groups CASCADE;
+DROP TABLE IF EXISTS courses CASCADE;
+DROP TABLE IF EXISTS teachers CASCADE;
+DROP TABLE IF EXISTS students CASCADE;
+
+CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    name_student VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    program VARCHAR(100) NOT NULL,
+    enrollment_year INTEGER NOT NULL
+);
+
+CREATE TABLE teachers (
+    id SERIAL PRIMARY KEY,
+    name_teacher VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name_course VARCHAR(100) NOT NULL,
+    credits INTEGER NOT NULL
+);
+
+CREATE TABLE groups (
+    id SERIAL PRIMARY KEY,
+    course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    teacher_id INTEGER NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+    term VARCHAR(100) NOT NULL CHECK ( term IN ('Enero-Abril','Mayo-Agosto','Septiembre-Diciembre'))
+);
+
+CREATE TABLE enrollments (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    enrollet_at DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+CREATE TABLE grades (
+    id SERIAL PRIMARY KEY,
+    enrollment_id INTEGER NOT NULL REFERENCES enrollments(id) ON DELETE CASCADE,
+    partial1 DECIMAL(4,2),
+    partial2 DECIMAL(4,2),
+    final DECIMAL(4,2)
+);
+
+CREATE TABLE attendance (
+    id SERIAL PRIMARY KEY,
+    enrollment_id INTEGER NOT NULL REFERENCES enrollments(id) ON DELETE CASCADE,
+    date TIMESTAMP NOT NULL,
+    present BOOLEAN NOT NULL
+);

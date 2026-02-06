@@ -25,6 +25,11 @@ export default async function Reporte1({
       <main>
         <BackButton />
         <h1>Rendimiento por Curso</h1>
+        <p>
+          Este reporte muestra el desempeño académico promedio por curso en un periodo
+          específico, permitiendo identificar asignaturas con altos niveles de
+          reprobación y cursos que requieren atención académica prioritaria.
+        </p>
         <p>Selecciona un periodo para visualizar el reporte.</p>
 
         <div className="filters">

@@ -51,6 +51,11 @@ export default async function Reporte3({
     <main>
       <BackButton />
       <h1>Alumnos en Riesgo Académico</h1>
+      <p className="description">
+        Este reporte presenta el porcentaje promedio de asistencia por grupo y periodo,
+        permitiendo detectar grupos con problemas de asistencia y evaluar el
+        compromiso estudiantil en cada curso.
+      </p>
 
       <div className="filters">
         <form className="search-container">

@@ -69,6 +69,11 @@ export default async function Reporte5({
     <main>
       <BackButton />
       <h1>Cuadro de Honor por Programa</h1>
+      <p className="description">
+        Este reporte muestra el ranking de los alumnos con mejor desempeño académico
+        por programa y periodo, destacando a los estudiantes con los promedios más
+        altos y apoyando el reconocimiento al mérito académico.
+      </p>
 
       <div className="filters">
         {PROGRAMAS.map((p) => (

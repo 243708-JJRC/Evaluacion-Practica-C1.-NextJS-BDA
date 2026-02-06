@@ -28,6 +28,11 @@ export default async function Reporte4({
     <main>
       <BackButton />
       <h1>Asistencia Promedio por Grupo</h1>
+      <p className="description">
+        Este reporte presenta el porcentaje promedio de asistencia por grupo y periodo,
+        permitiendo detectar grupos con problemas de asistencia y evaluar el
+        compromiso estudiantil en cada curso.
+      </p>
 
       <h3>Mejor asistencia promedio: {mejorAsistencia}%</h3>
 

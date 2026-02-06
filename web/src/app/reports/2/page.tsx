@@ -39,7 +39,11 @@ export default async function Reporte2({
     <main>
       <BackButton />
       <h1>Carga académica por docente</h1>
-
+      <p className="description">
+        Este reporte permite analizar la carga académica de cada docente por periodo,
+        considerando el número de grupos, alumnos atendidos y el promedio general,
+        con el fin de apoyar la asignación equilibrada de recursos docentes.
+      </p>
       {topTeacher && (
         <h3> Mayor carga académica:{" "}
           <strong>{topTeacher.docente}</strong> —{" "}

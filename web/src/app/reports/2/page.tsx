@@ -1,17 +1,19 @@
 import { pool } from "../../lib/db";
 import { paginationSchema } from "../../lib/validators";
-import Link from "next/link";
-
-export const dynamic = 'force-dynamic';
+import { PaginationControls } from "../../components/pagination";
+import { BackButton } from "../../components/button";
 
 export default async function Reporte2({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  
+  const sParams = await searchParams;
+
   const result = paginationSchema.safeParse({
-    page: searchParams.page ?? 1,
-    limit: searchParams.limit ?? 5,
+    page: sParams.page ?? 1,
+    limit: sParams.limit ?? 5,
   });
 
   if (!result.success) {
@@ -34,6 +36,7 @@ export default async function Reporte2({
 
   return (
     <main>
+      <BackButton /> {}
       <h1>Carga académica por docente</h1>
 
       <table border={1}>
@@ -58,24 +61,7 @@ export default async function Reporte2({
           ))}
         </tbody>
       </table>
-
-      <div style={{ marginTop: "20px", display: "flex", gap: "10px", alignItems: "center" }}>
-        <Link 
-          href={`?page=${Math.max(1, page - 1)}&limit=${limit}`}
-          style={{ pointerEvents: page <= 1 ? "none" : "auto", opacity: page <= 1 ? 0.5 : 1 }}
-        >
-          Anterior
-        </Link>
-
-        <span>Página {page} de {totalPages}</span>
-
-        <Link 
-          href={`?page=${Math.min(totalPages, page + 1)}&limit=${limit}`}
-          style={{ pointerEvents: page >= totalPages ? "none" : "auto", opacity: page >= totalPages ? 0.5 : 1 }}
-        >
-          Siguiente
-        </Link>
-      </div>
+      <PaginationControls page={page} totalPages={totalPages} />
     </main>
   );
 }

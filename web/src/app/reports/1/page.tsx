@@ -1,40 +1,51 @@
 import { pool } from "../../lib/db";
+import { PaginationControls } from "../../components/pagination";
+import { BackButton } from "../../components/button";
 
-export default async function Reporte1() {
+export default async function ReporteAsistenciaGrupo({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sParams = await searchParams;
+  const page = Number(sParams.page) || 1;
+  const limit = 5;
+  const offset = (page - 1) * limit;
+
   const { rows } = await pool.query(
-    "SELECT * FROM vw_course_performance"
+    `SELECT *, count(*) OVER() AS total_count 
+     FROM vw_attendance_by_group 
+     ORDER BY term DESC, porcentaje_asistencia DESC 
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
   );
 
-  const totalVentas = rows.reduce(
-    (acc, r) => acc + Number(r.total_ventas),
-    0
-  );
+  const totalRows = rows.length > 0 ? parseInt(rows[0].total_count) : 0;
+  const totalPages = Math.ceil(totalRows / limit);
 
   return (
     <main>
-      <h1>Rendimiento del curso</h1>
-      <p>Total acumulado: <strong>${totalVentas.toFixed(2)}</strong></p>
-
-      <table>
+      <BackButton /> {}
+      <h1>Asistencia Promedio por Grupo</h1>
+      <table border={1}>
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Período</th>
-            <th>Total</th>
-            <th>Ticket promedio</th>
+            <th>ID Grupo</th>
+            <th>Periodo</th>
+            <th>Porcentaje Asistencia</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.fecha.toString()}>
-              <td>{new Date(r.fecha).toLocaleDateString()}</td>
-              <td>{r.total_ordenes}</td>
-              <td>${r.total_ventas}</td>
-              <td>${Number(r.ticket_promedio).toFixed(2)}</td>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td>{r.group_id}</td>
+              <td>{r.term}</td>
+              <td>{r.porcentaje_asistencia}%</td>
             </tr>
           ))}
         </tbody>
       </table>
+      <PaginationControls page={page} totalPages={totalPages}/>
     </main>
   );
 }

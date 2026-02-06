@@ -1,34 +1,50 @@
 import { pool } from "../../lib/db";
+import { PaginationControls } from "../../components/pagination";
+import { BackButton } from "../../components/button";
 
-export default async function Reporte4() {
+export default async function Reporte4({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sParams = await searchParams;
+  const page = Number(sParams.page) || 1;
+  const limit = 5;
+  const offset = (page - 1) * limit;
+
   const { rows } = await pool.query(
-    "SELECT * FROM vw_attendance_by_group"
+    `SELECT *, count(*) OVER() AS total_count 
+     FROM vw_attendance_by_group 
+     ORDER BY porcentaje_asistencia DESC 
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
   );
+
+  const totalPages = Math.ceil((rows[0]?.total_count || 0) / limit);
 
   return (
     <main>
-      <h1>Ticket promedio por categoría</h1>
-
-      <table>
+      <BackButton /> {}
+      <h1>Asistencia Promedio por Grupo</h1>
+      <table border={1}>
         <thead>
           <tr>
-            <th>Categoría</th>
-            <th>Total ingresos</th>
-            <th>Órdenes</th>
-            <th>Ticket promedio</th>
+            <th>ID Grupo</th>
+            <th>Periodo</th>
+            <th>Asistencia Promedio</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.categoria}>
-              <td>{r.categoria}</td>
-              <td>${r.total_ingresos}</td>
-              <td>{r.total_ordenes}</td>
-              <td>${Number(r.ticket_promedio).toFixed(2)}</td>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td>{r.group_id}</td>
+              <td>{r.term}</td>
+              <td>{r.porcentaje_asistencia}%</td>
             </tr>
           ))}
         </tbody>
       </table>
+      <PaginationControls page={page} totalPages={totalPages} />
     </main>
   );
-}
+};

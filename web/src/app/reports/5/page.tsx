@@ -1,37 +1,53 @@
 import { pool } from "../../lib/db";
+import { PaginationControls } from "../../components/pagination";
+import { BackButton } from "../../components/button";
 
-export default async function Reporte5() {
+
+export default async function ReporteRanking({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sParams = await searchParams;
+  const page = Number(sParams.page) || 1;
+  const limit = 5;
+  const offset = (page - 1) * limit;
+
   const { rows } = await pool.query(
-    "SELECT * FROM vw_rank_students"
+    `SELECT *, count(*) OVER() AS total_count 
+     FROM vw_rank_students 
+     ORDER BY program, ranking 
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
   );
 
-  const ultimo = rows[rows.length - 1];
+  const totalPages = Math.ceil((rows[0]?.total_count || 0) / limit);
 
   return (
     <main>
-      <h1>Ventas acumuladas</h1>
-      <p>
-        Total histórico: <strong>${ultimo?.total_acumulado ?? 0}</strong>
-      </p>
-
-      <table>
+      <BackButton /> {}
+      <h1>Cuadro de Honor por Programa</h1>
+      <table border={1}>
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Total día</th>
-            <th>Acumulado</th>
+            <th>Ranking</th>
+            <th>Alumno</th>
+            <th>Programa</th>
+            <th>Promedio Final</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.fecha.toString()}>
-              <td>{new Date(r.fecha).toLocaleDateString()}</td>
-              <td>${r.total_dia}</td>
-              <td>${r.total_acumulado}</td>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td>#{r.ranking}</td>
+              <td>{r.name_student}</td>
+              <td>{r.program}</td>
+              <td>{r.promedio_final}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      <PaginationControls page={page} totalPages={totalPages} />
     </main>
   );
-}
+};

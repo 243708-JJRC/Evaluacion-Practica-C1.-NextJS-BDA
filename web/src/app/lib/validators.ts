@@ -1,20 +1,12 @@
 import { z } from "zod";
 
 export const coursePerformanceSchema = z.object({
-  term: z.enum([
-    "Enero-Abril",
-    "Mayo-Agosto",
-    "Septiembre-Diciembre"
-  ])
+  term: z.string().min(1, "Periodo requerido")
 });
 
 export const rankStudentsSchema = z.object({
-  program: z.enum([
-    "Ingeniería",
-    "Derecho",
-    "Administración"
-  ]),
-  term: z.string()
+  program: z.string().min(1),
+  term: z.string().optional()
 });
 
 export const studentsAtRiskSearchSchema = z.object({

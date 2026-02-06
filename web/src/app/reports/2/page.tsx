@@ -8,7 +8,6 @@ export default async function Reporte2({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  
   const sParams = await searchParams;
 
   const result = paginationSchema.safeParse({
@@ -31,13 +30,22 @@ export default async function Reporte2({
     [limit, offset]
   );
 
-  const totalRows = rows.length > 0 ? parseInt(rows[0].total_count) : 0;
+  const totalRows = rows.length > 0 ? Number(rows[0].total_count) : 0;
   const totalPages = Math.ceil(totalRows / limit);
+
+  const topTeacher = rows[0];
 
   return (
     <main>
-      <BackButton /> {}
+      <BackButton />
       <h1>Carga académica por docente</h1>
+
+      {topTeacher && (
+        <h3> Mayor carga académica:{" "}
+          <strong>{topTeacher.docente}</strong> —{" "}
+          {topTeacher.total_alumnos} alumnos ({topTeacher.term})
+        </h3>
+      )}
 
       <table border={1}>
         <thead>

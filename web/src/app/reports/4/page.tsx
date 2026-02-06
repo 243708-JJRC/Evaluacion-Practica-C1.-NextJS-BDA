@@ -22,10 +22,15 @@ export default async function Reporte4({
 
   const totalPages = Math.ceil((rows[0]?.total_count || 0) / limit);
 
+  const mejorAsistencia = rows.length > 0 ? rows[0].porcentaje_asistencia : 0;
+
   return (
     <main>
-      <BackButton /> {}
+      <BackButton />
       <h1>Asistencia Promedio por Grupo</h1>
+
+      <h3>Mejor asistencia promedio: {mejorAsistencia}%</h3>
+
       <table border={1}>
         <thead>
           <tr>
@@ -47,4 +52,4 @@ export default async function Reporte4({
       <PaginationControls page={page} totalPages={totalPages} />
     </main>
   );
-};
+}

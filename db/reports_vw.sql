@@ -117,7 +117,7 @@ SELECT
     g.term,
     s.name_student,
     ROUND(AVG(gr.final), 2) AS promedio_final,
-    RANK() OVER (
+    DENSE_RANK() OVER (
         PARTITION BY s.program, g.term
         ORDER BY AVG(gr.final) DESC
     ) AS ranking

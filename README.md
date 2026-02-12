@@ -35,6 +35,8 @@ La app permite filtrar por periodo, buscar alumnos, y paginar resultados, todo d
 - Docker Compose
 
 ### Levantar el proyecto
+En la carpeta raíz ejecutar el siguiente comando:
+
 ```bash
 docker compose up --build
 ```

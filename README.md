@@ -44,7 +44,6 @@ docker compose up --build
 - Next.js
 
 ## Variables de Entorno
-La aplicación NO se conecta como postgres.
 Las variables estaran en el reporte en PDF de la actividad.
 
 ## Seguridad y Roles

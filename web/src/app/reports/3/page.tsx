@@ -1,8 +1,5 @@
-import { pool } from "../../lib/db";
-import {
-  studentsAtRiskSearchSchema,
-  paginationSchema,
-} from "../../lib/validators";
+import { studentsAtRiskSearchSchema, paginationSchema } from "../../../lib/validators";
+import { getStudentsAtRisk } from "../../../services/reporte3";
 import { PaginationControls } from "../../components/pagination";
 import { BackButton } from "../../components/button";
 
@@ -11,6 +8,7 @@ export default async function Reporte3({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+
   const sParams = await searchParams;
 
   const searchResult = studentsAtRiskSearchSchema.safeParse({
@@ -29,36 +27,22 @@ export default async function Reporte3({
   }
 
   const { page, limit } = paginationResult.data;
-  const offset = (page - 1) * limit;
 
-  const { rows } = await pool.query(
-    `
-    SELECT *, count(*) OVER() AS total_count
-    FROM vw_students_at_risk
-    WHERE name_student ILIKE $1 OR email ILIKE $1
-    ORDER BY promedio_calificacion ASC
-    LIMIT $2 OFFSET $3
-    `,
-    [`%${search}%`, limit, offset]
-  );
-
-  const totalRows = rows.length > 0 ? Number(rows[0].total_count) : 0;
-  const totalPages = Math.ceil(totalRows / limit);
-
-  const totalRiesgo = totalRows;
+  const { data, totalPages, kpi } =
+    await getStudentsAtRisk(search, page, limit);
 
   return (
     <main>
       <BackButton />
       <h1>Alumnos en Riesgo Académico</h1>
+
       <p className="description">
-        Este reporte presenta el porcentaje promedio de asistencia por grupo y periodo,
-        permitiendo detectar grupos con problemas de asistencia y evaluar el
-        compromiso estudiantil en cada curso.
+        Este reporte identifica estudiantes con bajo promedio o baja asistencia,
+        permitiendo intervenir de forma preventiva.
       </p>
 
       <div className="filters">
-        <form className="search-container">
+        <form className="search-container" method="GET">
           <input
             type="text"
             name="search"
@@ -66,11 +50,16 @@ export default async function Reporte3({
             defaultValue={search}
             className="search-input"
           />
-          <button className="search-btn" type="submit">Buscar</button>
+          <button className="search-btn" type="submit">
+            Buscar
+          </button>
         </form>
       </div>
 
-      <h3>Total de alumnos en riesgo: <strong>{totalRiesgo}</strong></h3>
+      <h3>
+        Total de alumnos en riesgo:{" "}
+        <strong>{kpi.totalRiesgo}</strong>
+      </h3>
 
       <table border={1}>
         <thead>
@@ -83,7 +72,7 @@ export default async function Reporte3({
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
+          {data.map((r, i) => (
             <tr key={i}>
               <td>{r.name_student}</td>
               <td>{r.email}</td>
@@ -94,7 +83,11 @@ export default async function Reporte3({
           ))}
         </tbody>
       </table>
-      <PaginationControls page={page} totalPages={totalPages} />
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+      />
     </main>
   );
 }

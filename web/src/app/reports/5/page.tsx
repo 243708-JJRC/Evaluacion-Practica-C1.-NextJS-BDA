@@ -1,15 +1,21 @@
-import { pool } from "../../lib/db";
-import { rankStudentsSchema, paginationSchema } from "../../lib/validators";
+import { rankStudentsSchema, paginationSchema } from "../../../lib/validators";
+import { getRankStudents } from "../../../services/reporte5";
 import { PaginationControls } from "../../components/pagination";
 import { BackButton } from "../../components/button";
 
-const PROGRAMAS = ["Ingeniería de Software", "Ciberseguridad", "Inteligencia Artificial","Sistemas Digitales"];
+const PROGRAMAS = [
+  "Ingeniería de Software",
+  "Ciberseguridad",
+  "Inteligencia Artificial",
+  "Sistemas Digitales",
+];
 
 export default async function Reporte5({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+
   const sParams = await searchParams;
 
   const filterResult = rankStudentsSchema.safeParse({
@@ -26,7 +32,10 @@ export default async function Reporte5({
 
         <div className="filters">
           {PROGRAMAS.map((p) => (
-            <a key={p} href={`/reports/5?program=${encodeURIComponent(p)}`}>
+            <a
+              key={p}
+              href={`/reports/5?program=${encodeURIComponent(p)}`}
+            >
               {p}
             </a>
           ))}
@@ -47,32 +56,18 @@ export default async function Reporte5({
   }
 
   const { page, limit } = paginationResult.data;
-  const offset = (page - 1) * limit;
 
-  const { rows } = await pool.query(
-    `
-    SELECT *, count(*) OVER() AS total_count
-    FROM vw_rank_students
-    WHERE program = $1
-    ORDER BY ranking ASC
-    LIMIT $2 OFFSET $3
-    `,
-    [program, limit, offset]
-  );
-
-  const totalRows = rows.length > 0 ? Number(rows[0].total_count) : 0;
-  const totalPages = Math.ceil(totalRows / limit);
-
-  const top1 = rows.find((r) => r.ranking === 1);
+  const { data, totalPages, kpi } =
+    await getRankStudents(program, page, limit);
 
   return (
     <main>
       <BackButton />
       <h1>Cuadro de Honor por Programa</h1>
+
       <p className="description">
         Este reporte muestra el ranking de los alumnos con mejor desempeño académico
-        por programa y periodo, destacando a los estudiantes con los promedios más
-        altos y apoyando el reconocimiento al mérito académico.
+        por programa y periodo.
       </p>
 
       <div className="filters">
@@ -87,8 +82,12 @@ export default async function Reporte5({
         ))}
       </div>
 
-      {top1 && (
-        <h3>Primer lugar en <strong>{program}</strong>:{" "} <strong>{top1.name_student}</strong> ({top1.promedio_final})</h3>
+      {kpi.top1 && (
+        <h3>
+          Primer lugar en <strong>{program}</strong>:{" "}
+          <strong>{kpi.top1.name_student}</strong> (
+          {kpi.top1.promedio_final})
+        </h3>
       )}
 
       <table border={1}>
@@ -102,7 +101,7 @@ export default async function Reporte5({
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
+          {data.map((r, i) => (
             <tr key={i}>
               <td>#{r.ranking}</td>
               <td>{r.name_student}</td>
@@ -113,7 +112,11 @@ export default async function Reporte5({
           ))}
         </tbody>
       </table>
-      <PaginationControls page={page} totalPages={totalPages} />
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+      />
     </main>
   );
 }

@@ -1,5 +1,5 @@
-import { pool } from "../../lib/db";
-import { coursePerformanceSchema, paginationSchema } from "../../lib/validators";
+import { coursePerformanceSchema, paginationSchema } from "../../../lib/validators";
+import { getCoursePerformance } from "../../../services/reporte1";
 import { PaginationControls } from "../../components/pagination";
 import { BackButton } from "../../components/button";
 
@@ -14,11 +14,12 @@ export default async function Reporte1({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+
   const sParams = await searchParams;
 
   const filterResult = coursePerformanceSchema.safeParse({
     term: sParams.term,
-  });
+  });  
 
   if (!filterResult.success) {
     return (
@@ -26,11 +27,9 @@ export default async function Reporte1({
         <BackButton />
         <h1>Rendimiento por Curso</h1>
         <p>
-          Este reporte muestra el desempeño académico promedio por curso en un periodo
-          específico, permitiendo identificar asignaturas con altos niveles de
-          reprobación y cursos que requieren atención académica prioritaria.
+          Este reporte muestra el desempeño académico promedio por curso
+          en un periodo específico.
         </p>
-        <p>Selecciona un periodo para visualizar el reporte.</p>
 
         <div className="filters">
           {PERIODOS.map((p) => (
@@ -55,29 +54,9 @@ export default async function Reporte1({
   }
 
   const { page, limit } = paginationResult.data;
-  const offset = (page - 1) * limit;
 
-  const { rows } = await pool.query(
-    `
-    SELECT *, count(*) OVER() AS total_count
-    FROM vw_course_performance
-    WHERE term = $1
-    ORDER BY promedio_final DESC
-    LIMIT $2 OFFSET $3
-    `,
-    [term, limit, offset]
-  );
-
-  const totalRows = rows.length > 0 ? Number(rows[0].total_count) : 0;
-  const totalPages = Math.ceil(totalRows / limit);
-
-  const promedioGlobal =
-    rows.length > 0
-      ? (
-          rows.reduce((acc, r) => acc + Number(r.promedio_final), 0) /
-          rows.length
-        ).toFixed(2)
-      : "0.00";
+  const { data, totalPages, promedioGlobal } =
+    await getCoursePerformance(term, page, limit);
 
   return (
     <main>
@@ -96,7 +75,11 @@ export default async function Reporte1({
         ))}
       </div>
 
-      <h3>Promedio global del periodo <strong>{term}</strong>:{" "}<strong>{promedioGlobal}</strong></h3>
+      <h3>
+        Promedio global del periodo <strong>{term}</strong>:{" "}
+        <strong>{promedioGlobal}</strong>
+      </h3>
+
       <table border={1}>
         <thead>
           <tr>
@@ -108,7 +91,7 @@ export default async function Reporte1({
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
+          {data.map((r, i) => (
             <tr key={i}>
               <td>{r.course}</td>
               <td>{r.program}</td>
@@ -119,6 +102,7 @@ export default async function Reporte1({
           ))}
         </tbody>
       </table>
+
       <PaginationControls page={page} totalPages={totalPages} />
     </main>
   );
